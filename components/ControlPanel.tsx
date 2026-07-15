@@ -171,7 +171,7 @@ export default function ControlPanel({
               >
                 {m.sender === "me" ? "Moi" : "Eux"}
               </span>
-              <span className="flex-1 truncate text-black/70">{m.text}</span>
+              <span className="flex-1 truncate text-black/70">{m.image ? "📷 Photo" : m.text}</span>
               <button onClick={() => onDeleteMessage(m.id)} className="text-black/30 hover:text-[#FF3B30] shrink-0">
                 ✕
               </button>
@@ -179,7 +179,7 @@ export default function ControlPanel({
           ))}
         </div>
         <p className="text-black/40 text-[12px]">
-          Double-clique un texte directement dans la bulle pour le modifier. Clique sur &laquo;&nbsp;Livré&nbsp;&raquo; sous ton dernier message pour basculer en &laquo;&nbsp;Lu&nbsp;&raquo;.
+          Double-clique un texte directement dans la bulle pour le modifier. Les messages envoyés par &laquo;&nbsp;Moi&nbsp;&raquo; passent automatiquement en &laquo;&nbsp;Lu&nbsp;&raquo;.
         </p>
       </section>
     </div>

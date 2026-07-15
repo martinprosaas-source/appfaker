@@ -14,7 +14,7 @@ interface PhoneFrameProps {
   messages: ChatMessage[];
   activeSender: Sender;
   onSend: (text: string) => void;
-  onStatusClick: (id: string) => void;
+  onSendImage: (dataUrl: string) => void;
   onTextChange?: (id: string, text: string) => void;
   fullscreen?: boolean;
   onBackgroundTap?: () => void;
@@ -23,11 +23,9 @@ interface PhoneFrameProps {
 
 function MessageList({
   messages,
-  onStatusClick,
   onTextChange,
 }: {
   messages: ChatMessage[];
-  onStatusClick: (id: string) => void;
   onTextChange?: (id: string, text: string) => void;
 }) {
   if (messages.length === 0) {
@@ -50,7 +48,6 @@ function MessageList({
               message={message}
               showTail={isLastOfGroup}
               showStatus={isLastOverall && message.sender === "me"}
-              onStatusClick={() => onStatusClick(message.id)}
               onTextChange={onTextChange ? (text) => onTextChange(message.id, text) : undefined}
             />
           </div>
@@ -69,7 +66,7 @@ export default function PhoneFrame({
   messages,
   activeSender,
   onSend,
-  onStatusClick,
+  onSendImage,
   onTextChange,
   fullscreen = false,
   onBackgroundTap,
@@ -98,11 +95,11 @@ export default function PhoneFrame({
           className="no-scrollbar flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-[3px] bg-white"
           style={{ ["--chat-bg" as string]: "#ffffff" }}
         >
-          <MessageList messages={messages} onStatusClick={onStatusClick} onTextChange={onTextChange} />
+          <MessageList messages={messages} onTextChange={onTextChange} />
         </div>
 
         <div style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
-          <Composer activeSender={activeSender} contactName={contactName} onSend={onSend} />
+          <Composer activeSender={activeSender} contactName={contactName} onSend={onSend} onSendImage={onSendImage} />
         </div>
       </div>
     );
@@ -122,10 +119,10 @@ export default function PhoneFrame({
           className="no-scrollbar flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-[3px] bg-white"
           style={{ ["--chat-bg" as string]: "#ffffff" }}
         >
-          <MessageList messages={messages} onStatusClick={onStatusClick} onTextChange={onTextChange} />
+          <MessageList messages={messages} onTextChange={onTextChange} />
         </div>
 
-        <Composer activeSender={activeSender} contactName={contactName} onSend={onSend} />
+        <Composer activeSender={activeSender} contactName={contactName} onSend={onSend} onSendImage={onSendImage} />
 
         {/* home indicator */}
         <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-[134px] h-[5px] rounded-full bg-black/80" />

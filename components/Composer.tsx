@@ -1,14 +1,16 @@
-import { useState } from "react";
+import { ChangeEvent, useRef, useState } from "react";
 import { Sender } from "@/lib/types";
 
 interface ComposerProps {
   activeSender: Sender;
   contactName: string;
   onSend: (text: string) => void;
+  onSendImage: (dataUrl: string) => void;
 }
 
-export default function Composer({ activeSender, contactName, onSend }: ComposerProps) {
+export default function Composer({ activeSender, contactName, onSend, onSendImage }: ComposerProps) {
   const [text, setText] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const submit = () => {
     const trimmed = text.trim();
@@ -17,11 +19,30 @@ export default function Composer({ activeSender, contactName, onSend }: Composer
     setText("");
   };
 
+  const handleImagePick = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => onSendImage(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div
       onClick={(e) => e.stopPropagation()}
       className="flex items-center gap-2 px-2.5 py-2 border-t border-black/10 bg-white"
     >
+      <button
+        onClick={() => fileInputRef.current?.click()}
+        className="flex items-center justify-center w-7 h-7 rounded-full border border-black/15 text-black/50 shrink-0"
+      >
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+          <path d="M7.5 1.5V13.5M1.5 7.5H13.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
+      </button>
+      <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImagePick} className="hidden" />
+
       <div className="flex-1 flex items-center rounded-full border border-black/15 px-3.5 py-1.5">
         <input
           value={text}

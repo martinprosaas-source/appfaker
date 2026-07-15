@@ -168,7 +168,7 @@ export default function MobilePrep({
                   >
                     {m.sender === "me" ? "Moi" : "Eux"}
                   </span>
-                  <span className="flex-1 truncate">{m.text}</span>
+                  <span className="flex-1 truncate">{m.image ? "📷 Photo" : m.text}</span>
                   <div className="flex items-center shrink-0">
                     <button
                       onClick={() => onMoveMessage(index, -1)}

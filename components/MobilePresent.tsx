@@ -8,7 +8,7 @@ interface MobilePresentProps {
   visibleMessages: ChatMessage[];
   activeSender: Sender;
   onSend: (text: string) => void;
-  onStatusClick: (id: string) => void;
+  onSendImage: (dataUrl: string) => void;
   onRevealNext: () => void;
   onExit: () => void;
 }
@@ -20,7 +20,7 @@ export default function MobilePresent({
   visibleMessages,
   activeSender,
   onSend,
-  onStatusClick,
+  onSendImage,
   onRevealNext,
   onExit,
 }: MobilePresentProps) {
@@ -33,7 +33,7 @@ export default function MobilePresent({
       messages={visibleMessages}
       activeSender={activeSender}
       onSend={onSend}
-      onStatusClick={onStatusClick}
+      onSendImage={onSendImage}
       onBackgroundTap={onRevealNext}
       onBack={onExit}
     />

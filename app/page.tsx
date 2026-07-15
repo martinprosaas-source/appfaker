@@ -31,7 +31,20 @@ export default function Home() {
   const handleDesktopSend = (text: string) => {
     setMessages((prev) => [
       ...prev,
-      { id: genId(), sender: activeSender, text, status: activeSender === "me" ? "delivered" : undefined },
+      { id: genId(), sender: activeSender, text, readAt: activeSender === "me" ? currentTime() : undefined },
+    ]);
+  };
+
+  const handleDesktopSendImage = (dataUrl: string) => {
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: genId(),
+        sender: activeSender,
+        text: "",
+        image: dataUrl,
+        readAt: activeSender === "me" ? currentTime() : undefined,
+      },
     ]);
   };
 
@@ -39,7 +52,7 @@ export default function Home() {
   const handleAddToScript = (sender: Sender, text: string) => {
     setMessages((prev) => [
       ...prev,
-      { id: genId(), sender, text, status: sender === "me" ? "delivered" : undefined },
+      { id: genId(), sender, text, readAt: sender === "me" ? currentTime() : undefined },
     ]);
   };
 
@@ -49,7 +62,23 @@ export default function Home() {
       id: genId(),
       sender: activeSender,
       text,
-      status: activeSender === "me" ? "delivered" : undefined,
+      readAt: activeSender === "me" ? currentTime() : undefined,
+    };
+    setMessages((prev) => {
+      const copy = [...prev];
+      copy.splice(revealedCount, 0, newMessage);
+      return copy;
+    });
+    setRevealedCount((c) => c + 1);
+  };
+
+  const handlePresentSendImage = (dataUrl: string) => {
+    const newMessage: ChatMessage = {
+      id: genId(),
+      sender: activeSender,
+      text: "",
+      image: dataUrl,
+      readAt: activeSender === "me" ? currentTime() : undefined,
     };
     setMessages((prev) => {
       const copy = [...prev];
@@ -61,20 +90,6 @@ export default function Home() {
 
   const handleRevealNext = () => {
     setRevealedCount((c) => Math.min(c + 1, messages.length));
-  };
-
-  const handleStatusClick = (id: string) => {
-    setMessages((prev) =>
-      prev.map((m) =>
-        m.id === id
-          ? {
-              ...m,
-              status: m.status === "delivered" ? "read" : "delivered",
-              readAt: m.status === "delivered" ? currentTime() : undefined,
-            }
-          : m
-      )
-    );
   };
 
   const handleTextChange = (id: string, text: string) => {
@@ -118,7 +133,7 @@ export default function Home() {
           messages={messages}
           activeSender={activeSender}
           onSend={handleDesktopSend}
-          onStatusClick={handleStatusClick}
+          onSendImage={handleDesktopSendImage}
           onTextChange={handleTextChange}
         />
         <ControlPanel
@@ -167,7 +182,7 @@ export default function Home() {
             visibleMessages={messages.slice(0, revealedCount)}
             activeSender={activeSender}
             onSend={handlePresentSend}
-            onStatusClick={handleStatusClick}
+            onSendImage={handlePresentSendImage}
             onRevealNext={handleRevealNext}
             onExit={() => setMode("prep")}
           />
