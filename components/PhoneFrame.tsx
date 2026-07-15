@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { ChatMessage, Sender } from "@/lib/types";
+import { ChatMessage } from "@/lib/types";
 import StatusBar from "./StatusBar";
 import ChatHeader from "./ChatHeader";
 import MessageBubble from "./MessageBubble";
@@ -12,7 +12,6 @@ interface PhoneFrameProps {
   time?: string;
   battery?: number;
   messages: ChatMessage[];
-  activeSender: Sender;
   onSend: (text: string) => void;
   onSendImage: (dataUrl: string) => void;
   onTextChange?: (id: string, text: string) => void;
@@ -64,7 +63,6 @@ export default function PhoneFrame({
   time,
   battery,
   messages,
-  activeSender,
   onSend,
   onSendImage,
   onTextChange,
@@ -99,7 +97,7 @@ export default function PhoneFrame({
         </div>
 
         <div style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
-          <Composer activeSender={activeSender} contactName={contactName} onSend={onSend} onSendImage={onSendImage} />
+          <Composer onSend={onSend} onSendImage={onSendImage} />
         </div>
       </div>
     );
@@ -122,7 +120,7 @@ export default function PhoneFrame({
           <MessageList messages={messages} onTextChange={onTextChange} />
         </div>
 
-        <Composer activeSender={activeSender} contactName={contactName} onSend={onSend} onSendImage={onSendImage} />
+        <Composer onSend={onSend} onSendImage={onSendImage} />
 
         {/* home indicator */}
         <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-[134px] h-[5px] rounded-full bg-black/80" />

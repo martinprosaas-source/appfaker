@@ -131,7 +131,6 @@ export default function Home() {
           time={time}
           battery={battery}
           messages={messages}
-          activeSender={activeSender}
           onSend={handleDesktopSend}
           onSendImage={handleDesktopSendImage}
           onTextChange={handleTextChange}
@@ -180,7 +179,6 @@ export default function Home() {
             avatarImage={avatarImage}
             avatarColor={avatarColor}
             visibleMessages={messages.slice(0, revealedCount)}
-            activeSender={activeSender}
             onSend={handlePresentSend}
             onSendImage={handlePresentSendImage}
             onRevealNext={handleRevealNext}

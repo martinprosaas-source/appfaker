@@ -1,4 +1,4 @@
-import { ChatMessage, Sender } from "@/lib/types";
+import { ChatMessage } from "@/lib/types";
 import PhoneFrame from "./PhoneFrame";
 
 interface MobilePresentProps {
@@ -6,7 +6,6 @@ interface MobilePresentProps {
   avatarImage: string | null;
   avatarColor: string;
   visibleMessages: ChatMessage[];
-  activeSender: Sender;
   onSend: (text: string) => void;
   onSendImage: (dataUrl: string) => void;
   onRevealNext: () => void;
@@ -18,7 +17,6 @@ export default function MobilePresent({
   avatarImage,
   avatarColor,
   visibleMessages,
-  activeSender,
   onSend,
   onSendImage,
   onRevealNext,
@@ -31,7 +29,6 @@ export default function MobilePresent({
       avatarImage={avatarImage}
       avatarColor={avatarColor}
       messages={visibleMessages}
-      activeSender={activeSender}
       onSend={onSend}
       onSendImage={onSendImage}
       onBackgroundTap={onRevealNext}

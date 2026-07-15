@@ -1,14 +1,11 @@
 import { ChangeEvent, useRef, useState } from "react";
-import { Sender } from "@/lib/types";
 
 interface ComposerProps {
-  activeSender: Sender;
-  contactName: string;
   onSend: (text: string) => void;
   onSendImage: (dataUrl: string) => void;
 }
 
-export default function Composer({ activeSender, contactName, onSend, onSendImage }: ComposerProps) {
+export default function Composer({ onSend, onSendImage }: ComposerProps) {
   const [text, setText] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -53,7 +50,7 @@ export default function Composer({ activeSender, contactName, onSend, onSendImag
               submit();
             }
           }}
-          placeholder={`Envoyer en tant que ${activeSender === "me" ? "Moi" : contactName || "contact"}`}
+          placeholder="Envoyer depuis iMessage"
           className="w-full text-[17px] outline-none placeholder:text-black/35"
         />
       </div>
