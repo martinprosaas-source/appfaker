@@ -23,6 +23,16 @@ function typingDelayFor(message: ChatMessage) {
   return Math.min(3200, Math.max(700, 350 + message.text.length * 35));
 }
 
+// Per-character delay for the autotype effect on my own messages — a bit of
+// human-like rhythm: quick between letters, a small breath after spaces, a
+// longer beat after sentence-ending punctuation.
+function nextCharDelay(char: string) {
+  if (/[.!?]/.test(char)) return 260 + Math.random() * 220;
+  if (char === ",") return 160 + Math.random() * 120;
+  if (char === " ") return 25 + Math.random() * 40;
+  return 30 + Math.random() * 55;
+}
+
 export default function Home() {
   const [contactName, setContactName] = useState("Marie");
   const [avatarImage, setAvatarImage] = useState<string | null>(null);
@@ -34,7 +44,9 @@ export default function Home() {
   const [revealedCount, setRevealedCount] = useState(0);
   const [mode, setMode] = useState<"prep" | "present">("prep");
   const [isTyping, setIsTyping] = useState(false);
+  const [autotypeText, setAutotypeText] = useState<string | null>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autotypeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const cancelPendingTyping = () => {
     if (typingTimeoutRef.current) {
@@ -42,6 +54,34 @@ export default function Home() {
       typingTimeoutRef.current = null;
     }
     setIsTyping(false);
+    if (autotypeTimeoutRef.current) {
+      clearTimeout(autotypeTimeoutRef.current);
+      autotypeTimeoutRef.current = null;
+    }
+    setAutotypeText(null);
+  };
+
+  // Types my own message into the composer letter by letter, then sends it
+  // — so a screen recording shows a real-looking typing moment instead of
+  // the bubble just popping into existence.
+  const startAutotype = (message: ChatMessage) => {
+    const fullText = message.text;
+    setAutotypeText("");
+    let i = 0;
+    const typeNextChar = () => {
+      i++;
+      setAutotypeText(fullText.slice(0, i));
+      if (i < fullText.length) {
+        autotypeTimeoutRef.current = setTimeout(typeNextChar, nextCharDelay(fullText[i - 1]));
+      } else {
+        autotypeTimeoutRef.current = setTimeout(() => {
+          autotypeTimeoutRef.current = null;
+          setAutotypeText(null);
+          setRevealedCount((c) => Math.min(c + 1, messages.length));
+        }, 450);
+      }
+    };
+    autotypeTimeoutRef.current = setTimeout(typeNextChar, 200 + Math.random() * 150);
   };
 
   // Desktop composer: always appends and is immediately visible.
@@ -109,14 +149,19 @@ export default function Home() {
 
   // Tapping the screen reveals the next scripted message. Messages from the
   // other person first show a "typing…" bubble for a bit — timed roughly to
-  // their length — before the real message replaces it. My own messages
-  // appear right away since I'm the one triggering the tap live.
+  // their length — before the real message replaces it. My own messages get
+  // typed into the composer letter by letter and then sent automatically,
+  // so it actually looks like I'm writing it live.
   const handleRevealNext = () => {
-    if (isTyping) return;
+    if (isTyping || autotypeText !== null) return;
     const next = messages[revealedCount];
     if (!next) return;
     if (next.sender === "me") {
-      setRevealedCount((c) => Math.min(c + 1, messages.length));
+      if (next.image || !next.text) {
+        setRevealedCount((c) => Math.min(c + 1, messages.length));
+      } else {
+        startAutotype(next);
+      }
       return;
     }
     setIsTyping(true);
@@ -226,6 +271,7 @@ export default function Home() {
             avatarColor={avatarColor}
             visibleMessages={messages.slice(0, revealedCount)}
             isTyping={isTyping}
+            autotypeText={autotypeText}
             onSend={handlePresentSend}
             onSendImage={handlePresentSendImage}
             onRevealNext={handleRevealNext}
