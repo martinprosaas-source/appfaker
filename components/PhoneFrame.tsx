@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChatMessage } from "@/lib/types";
 import StatusBar from "./StatusBar";
 import ChatHeader from "./ChatHeader";
@@ -77,10 +77,30 @@ export default function PhoneFrame({
   onBack,
 }: PhoneFrameProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  // Tracks the real visible area (window.visualViewport), which shrinks
+  // when the on-screen keyboard opens — unlike 100dvh, which on iOS Safari
+  // doesn't reliably follow the keyboard for a `position: fixed` element.
+  // Without this, focusing the composer can leave the message list rendered
+  // behind the keyboard instead of shrinking to stay visible above it.
+  const [viewport, setViewport] = useState<{ height: number; top: number } | null>(null);
+
+  useEffect(() => {
+    if (!fullscreen) return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => setViewport({ height: vv.height, top: vv.offsetTop });
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, [fullscreen]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages.length, isTyping]);
+  }, [messages.length, isTyping, viewport]);
 
   if (fullscreen) {
     // No fake status bar here: the phone's own real status bar (time, signal,
@@ -88,8 +108,12 @@ export default function PhoneFrame({
     // duplicate — and mismatch — what's really there.
     return (
       <div
-        className="fixed inset-0 bg-white flex flex-col select-none"
-        style={{ height: "100dvh", paddingTop: "env(safe-area-inset-top)" }}
+        className="fixed inset-x-0 bg-white flex flex-col select-none"
+        style={{
+          top: viewport ? viewport.top : 0,
+          height: viewport ? viewport.height : "100dvh",
+          paddingTop: "env(safe-area-inset-top)",
+        }}
       >
         <ChatHeader contactName={contactName} avatarImage={avatarImage} avatarColor={avatarColor} onBack={onBack} />
 
