@@ -19,7 +19,7 @@ export default function MessageBubble({ message, showTail, showStatus, onTextCha
         </div>
       ) : (
         <div
-          className={`imessage-bubble-in relative max-w-[75%] px-3.5 py-[7px] text-[15.5px] leading-[1.28] whitespace-pre-wrap break-words outline-none ${
+          className={`imessage-bubble-in relative max-w-[75%] px-4 py-2 text-[17px] leading-[1.3] whitespace-pre-wrap break-words outline-none ${
             isMe
               ? `bg-[#0B84FF] text-white rounded-[18px] ${showTail ? "bubble-tail-sent" : ""}`
               : `bg-[#E9E9EB] text-black rounded-[18px] ${showTail ? "bubble-tail-received" : ""}`
@@ -32,7 +32,7 @@ export default function MessageBubble({ message, showTail, showStatus, onTextCha
         </div>
       )}
       {showStatus && message.readAt && (
-        <span className="mt-1 mr-1 text-[12px] text-[#8E8E93] select-none">Lu {message.readAt}</span>
+        <span className="mt-1 mr-1 text-[13px] text-[#8E8E93] select-none">Lu {message.readAt}</span>
       )}
     </div>
   );

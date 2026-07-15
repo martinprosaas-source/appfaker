@@ -35,15 +35,15 @@ export default function Composer({ activeSender, contactName, onSend, onSendImag
     >
       <button
         onClick={() => fileInputRef.current?.click()}
-        className="flex items-center justify-center w-7 h-7 rounded-full border border-black/15 text-black/50 shrink-0"
+        className="flex items-center justify-center w-8 h-8 rounded-full border border-black/15 text-black/50 shrink-0"
       >
-        <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+        <svg width="16" height="16" viewBox="0 0 15 15" fill="none">
           <path d="M7.5 1.5V13.5M1.5 7.5H13.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
         </svg>
       </button>
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImagePick} className="hidden" />
 
-      <div className="flex-1 flex items-center rounded-full border border-black/15 px-3.5 py-1.5">
+      <div className="flex-1 flex items-center rounded-full border border-black/15 px-4 py-2">
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -54,17 +54,17 @@ export default function Composer({ activeSender, contactName, onSend, onSendImag
             }
           }}
           placeholder={`Envoyer en tant que ${activeSender === "me" ? "Moi" : contactName || "contact"}`}
-          className="w-full text-[15px] outline-none placeholder:text-black/35"
+          className="w-full text-[17px] outline-none placeholder:text-black/35"
         />
       </div>
       <button
         onClick={submit}
         disabled={!text.trim()}
-        className={`flex items-center justify-center w-7 h-7 rounded-full shrink-0 transition-colors ${
+        className={`flex items-center justify-center w-8 h-8 rounded-full shrink-0 transition-colors ${
           text.trim() ? "bg-[#0B84FF]" : "bg-black/10"
         }`}
       >
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <svg width="15" height="15" viewBox="0 0 14 14" fill="none">
           <path d="M7 12V2M7 2L2.5 6.5M7 2L11.5 6.5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>

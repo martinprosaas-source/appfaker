@@ -32,18 +32,18 @@ export default function ChatHeader({ contactName, avatarImage, avatarColor, onBa
         <img
           src={avatarImage}
           alt=""
-          className="w-[52px] h-[52px] rounded-full object-cover"
+          className="w-[58px] h-[58px] rounded-full object-cover"
         />
       ) : (
         <div
-          className="w-[52px] h-[52px] rounded-full flex items-center justify-center text-white text-[19px] font-medium select-none"
+          className="w-[58px] h-[58px] rounded-full flex items-center justify-center text-white text-[21px] font-medium select-none"
           style={{ backgroundColor: avatarColor }}
         >
           {getInitials(contactName)}
         </div>
       )}
 
-      <div className="mt-1 flex items-center gap-0.5 text-[12px] font-semibold text-black select-none">
+      <div className="mt-1 flex items-center gap-0.5 text-[13px] font-semibold text-black select-none">
         {contactName || "Nom du contact"}
         <svg width="8" height="14" viewBox="0 0 8 14" fill="none">
           <path d="M1.5 1.5L6.5 7L1.5 12.5" stroke="#9A9A9E" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />

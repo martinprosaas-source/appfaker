@@ -43,22 +43,22 @@ body {
   position: absolute;
   z-index: 0;
   bottom: 0;
-  right: -7px;
-  width: 18px;
-  height: 22px;
+  right: -8px;
+  width: 20px;
+  height: 25px;
   background: inherit;
-  border-bottom-left-radius: 16px 14px;
+  border-bottom-left-radius: 18px 16px;
 }
 .bubble-tail-sent::after {
   content: "";
   position: absolute;
   z-index: 1;
   bottom: 0;
-  right: -11px;
-  width: 11px;
-  height: 22px;
+  right: -12px;
+  width: 12px;
+  height: 25px;
   background: var(--chat-bg, #ffffff);
-  border-bottom-left-radius: 10px;
+  border-bottom-left-radius: 11px;
 }
 
 .bubble-tail-received::before {
@@ -66,22 +66,22 @@ body {
   position: absolute;
   z-index: 0;
   bottom: 0;
-  left: -7px;
-  width: 18px;
-  height: 22px;
+  left: -8px;
+  width: 20px;
+  height: 25px;
   background: inherit;
-  border-bottom-right-radius: 16px 14px;
+  border-bottom-right-radius: 18px 16px;
 }
 .bubble-tail-received::after {
   content: "";
   position: absolute;
   z-index: 1;
   bottom: 0;
-  left: -11px;
-  width: 11px;
-  height: 22px;
+  left: -12px;
+  width: 12px;
+  height: 25px;
   background: var(--chat-bg, #ffffff);
-  border-bottom-right-radius: 10px;
+  border-bottom-right-radius: 11px;
 }
 
 /* hide scrollbar on the phone chat area while staying scrollable */
