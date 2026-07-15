@@ -14,30 +14,26 @@ interface PhoneFrameProps {
   battery?: number;
   messages: ChatMessage[];
   isTyping?: boolean;
-  autotypeText?: string | null;
   onSend: (text: string) => void;
   onSendImage: (dataUrl: string) => void;
   onTextChange?: (id: string, text: string) => void;
   fullscreen?: boolean;
-  onBackgroundTap?: () => void;
   onBack?: () => void;
 }
 
 function MessageList({
   messages,
   isTyping,
-  hideEmptyState,
   onTextChange,
 }: {
   messages: ChatMessage[];
   isTyping?: boolean;
-  hideEmptyState?: boolean;
   onTextChange?: (id: string, text: string) => void;
 }) {
-  if (messages.length === 0 && !isTyping && !hideEmptyState) {
+  if (messages.length === 0 && !isTyping) {
     return (
       <div className="flex-1 flex items-center justify-center text-black/30 text-sm text-center px-8">
-        Tape un message en bas pour démarrer la conversation
+        Envoie ton premier message en bas pour démarrer la conversation
       </div>
     );
   }
@@ -74,12 +70,10 @@ export default function PhoneFrame({
   battery,
   messages,
   isTyping = false,
-  autotypeText = null,
   onSend,
   onSendImage,
   onTextChange,
   fullscreen = false,
-  onBackgroundTap,
   onBack,
 }: PhoneFrameProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -94,7 +88,6 @@ export default function PhoneFrame({
     // duplicate — and mismatch — what's really there.
     return (
       <div
-        onClick={() => onBackgroundTap?.()}
         className="fixed inset-0 bg-white flex flex-col select-none"
         style={{ height: "100dvh", paddingTop: "env(safe-area-inset-top)" }}
       >
@@ -105,16 +98,11 @@ export default function PhoneFrame({
           className="no-scrollbar flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-[3px] bg-white"
           style={{ ["--chat-bg" as string]: "#ffffff" }}
         >
-          <MessageList
-            messages={messages}
-            isTyping={isTyping}
-            hideEmptyState={autotypeText !== null}
-            onTextChange={onTextChange}
-          />
+          <MessageList messages={messages} isTyping={isTyping} onTextChange={onTextChange} />
         </div>
 
         <div style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
-          <Composer onSend={onSend} onSendImage={onSendImage} autotypeText={autotypeText} />
+          <Composer onSend={onSend} onSendImage={onSendImage} />
         </div>
       </div>
     );

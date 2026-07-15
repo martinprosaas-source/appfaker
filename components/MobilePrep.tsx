@@ -1,5 +1,5 @@
 import { ChangeEvent, useState } from "react";
-import { ChatMessage, Sender } from "@/lib/types";
+import { ChatMessage } from "@/lib/types";
 
 interface MobilePrepProps {
   contactName: string;
@@ -8,9 +8,9 @@ interface MobilePrepProps {
   setAvatarImage: (v: string | null) => void;
   avatarColor: string;
   setAvatarColor: (v: string) => void;
-  messages: ChatMessage[];
+  script: ChatMessage[];
   revealedCount: number;
-  onAddToScript: (sender: Sender, text: string) => void;
+  onAddToScript: (text: string) => void;
   onDeleteMessage: (id: string) => void;
   onMoveMessage: (index: number, direction: -1 | 1) => void;
   onResetPlayback: () => void;
@@ -27,7 +27,7 @@ export default function MobilePrep({
   setAvatarImage,
   avatarColor,
   setAvatarColor,
-  messages,
+  script,
   revealedCount,
   onAddToScript,
   onDeleteMessage,
@@ -36,7 +36,6 @@ export default function MobilePrep({
   onClearAll,
   onStartRecording,
 }: MobilePrepProps) {
-  const [draftSender, setDraftSender] = useState<Sender>("them");
   const [draftText, setDraftText] = useState("");
 
   const handleAvatarUpload = (e: ChangeEvent<HTMLInputElement>) => {
@@ -50,7 +49,7 @@ export default function MobilePrep({
   const submitDraft = () => {
     const trimmed = draftText.trim();
     if (!trimmed) return;
-    onAddToScript(draftSender, trimmed);
+    onAddToScript(trimmed);
     setDraftText("");
   };
 
@@ -59,8 +58,9 @@ export default function MobilePrep({
       <header className="px-4 pt-[calc(env(safe-area-inset-top)+16px)] pb-3 bg-white border-b border-black/10">
         <h1 className="text-[18px] font-semibold">Préparer la conversation</h1>
         <p className="text-black/50 text-[13px] mt-0.5">
-          Écris tous les messages à l&apos;avance. Pendant l&apos;enregistrement, tu tapes sur l&apos;écran pour les faire
-          apparaître un par un.
+          Écris ici les messages de {contactName || "ton contact"}, dans l&apos;ordre. Pendant l&apos;enregistrement, tu
+          tapes et envoies tes propres messages normalement — {contactName || "il/elle"} répond automatiquement avec
+          le message suivant à chaque fois que tu envoies.
         </p>
       </header>
 
@@ -106,27 +106,8 @@ export default function MobilePrep({
 
         <section className="bg-white rounded-2xl p-4 flex flex-col gap-3">
           <h2 className="text-[13px] font-semibold uppercase tracking-wide text-black/40">
-            Script ({messages.length} message{messages.length > 1 ? "s" : ""})
+            Messages de {contactName || "ton contact"} ({script.length})
           </h2>
-
-          <div className="flex rounded-lg border border-black/15 overflow-hidden">
-            <button
-              onClick={() => setDraftSender("them")}
-              className={`flex-1 py-2 text-center transition-colors ${
-                draftSender === "them" ? "bg-[#0B84FF] text-white" : "bg-white text-black/70"
-              }`}
-            >
-              {contactName || "Contact"}
-            </button>
-            <button
-              onClick={() => setDraftSender("me")}
-              className={`flex-1 py-2 text-center transition-colors ${
-                draftSender === "me" ? "bg-[#0B84FF] text-white" : "bg-white text-black/70"
-              }`}
-            >
-              Moi
-            </button>
-          </div>
 
           <div className="flex items-center gap-2">
             <input
@@ -138,7 +119,7 @@ export default function MobilePrep({
                   submitDraft();
                 }
               }}
-              placeholder="Écrire un message du script..."
+              placeholder={`Écrire un message de ${contactName || "ton contact"}...`}
               className="flex-1 rounded-lg border border-black/15 px-3 py-2.5 outline-none focus:border-[#0B84FF]"
             />
             <button
@@ -152,22 +133,15 @@ export default function MobilePrep({
             </button>
           </div>
 
-          {messages.length > 0 && (
+          {script.length > 0 && (
             <div className="flex flex-col gap-1.5 mt-1">
-              {messages.map((m, index) => (
+              {script.map((m, index) => (
                 <div
                   key={m.id}
                   className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 ${
                     index < revealedCount ? "border-[#0B84FF]/30 bg-[#0B84FF]/5" : "border-black/10"
                   }`}
                 >
-                  <span
-                    className={`text-[10px] font-semibold uppercase shrink-0 w-8 ${
-                      m.sender === "me" ? "text-[#0B84FF]" : "text-black/50"
-                    }`}
-                  >
-                    {m.sender === "me" ? "Moi" : "Eux"}
-                  </span>
                   <span className="flex-1 truncate">{m.image ? "📷 Photo" : m.text}</span>
                   <div className="flex items-center shrink-0">
                     <button
@@ -179,7 +153,7 @@ export default function MobilePrep({
                     </button>
                     <button
                       onClick={() => onMoveMessage(index, 1)}
-                      disabled={index === messages.length - 1}
+                      disabled={index === script.length - 1}
                       className="w-7 h-7 flex items-center justify-center text-black/40 disabled:opacity-20"
                     >
                       ↓
@@ -198,7 +172,7 @@ export default function MobilePrep({
 
           <div className="flex items-center justify-between text-[13px] text-black/50 mt-1">
             <span>
-              {revealedCount}/{messages.length} déjà révélés
+              {revealedCount}/{script.length} déjà utilisés
             </span>
             <div className="flex gap-3">
               {revealedCount > 0 && (
@@ -206,7 +180,7 @@ export default function MobilePrep({
                   Réinitialiser la lecture
                 </button>
               )}
-              {messages.length > 0 && (
+              {script.length > 0 && (
                 <button onClick={onClearAll} className="text-[#FF3B30]">
                   Tout effacer
                 </button>
@@ -219,9 +193,9 @@ export default function MobilePrep({
       <div className="mt-auto sticky bottom-0 px-4 pb-[calc(env(safe-area-inset-bottom)+16px)] pt-3 bg-gradient-to-t from-[#f2f2f5] via-[#f2f2f5]">
         <button
           onClick={onStartRecording}
-          disabled={messages.length === 0}
+          disabled={script.length === 0}
           className={`w-full rounded-full py-3.5 font-semibold text-center ${
-            messages.length > 0 ? "bg-[#0B84FF] text-white" : "bg-black/10 text-black/40"
+            script.length > 0 ? "bg-[#0B84FF] text-white" : "bg-black/10 text-black/40"
           }`}
         >
           Lancer l&apos;enregistrement

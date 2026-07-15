@@ -5,12 +5,10 @@ interface MobilePresentProps {
   contactName: string;
   avatarImage: string | null;
   avatarColor: string;
-  visibleMessages: ChatMessage[];
+  conversation: ChatMessage[];
   isTyping: boolean;
-  autotypeText: string | null;
   onSend: (text: string) => void;
   onSendImage: (dataUrl: string) => void;
-  onRevealNext: () => void;
   onExit: () => void;
 }
 
@@ -18,12 +16,10 @@ export default function MobilePresent({
   contactName,
   avatarImage,
   avatarColor,
-  visibleMessages,
+  conversation,
   isTyping,
-  autotypeText,
   onSend,
   onSendImage,
-  onRevealNext,
   onExit,
 }: MobilePresentProps) {
   return (
@@ -32,12 +28,10 @@ export default function MobilePresent({
       contactName={contactName}
       avatarImage={avatarImage}
       avatarColor={avatarColor}
-      messages={visibleMessages}
+      messages={conversation}
       isTyping={isTyping}
-      autotypeText={autotypeText}
       onSend={onSend}
       onSendImage={onSendImage}
-      onBackgroundTap={onRevealNext}
       onBack={onExit}
     />
   );

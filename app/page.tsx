@@ -23,16 +23,6 @@ function typingDelayFor(message: ChatMessage) {
   return Math.min(3200, Math.max(700, 350 + message.text.length * 35));
 }
 
-// Per-character delay for the autotype effect on my own messages — a bit of
-// human-like rhythm: quick between letters, a small breath after spaces, a
-// longer beat after sentence-ending punctuation.
-function nextCharDelay(char: string) {
-  if (/[.!?]/.test(char)) return 260 + Math.random() * 220;
-  if (char === ",") return 160 + Math.random() * 120;
-  if (char === " ") return 25 + Math.random() * 40;
-  return 30 + Math.random() * 55;
-}
-
 export default function Home() {
   const [contactName, setContactName] = useState("Marie");
   const [avatarImage, setAvatarImage] = useState<string | null>(null);
@@ -40,13 +30,15 @@ export default function Home() {
   const [time, setTime] = useState(currentTime());
   const [battery, setBattery] = useState(82);
   const [activeSender, setActiveSender] = useState<Sender>("them");
+  // The script, written in advance: only the other person's messages.
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [revealedCount, setRevealedCount] = useState(0);
+  // The actual conversation as it unfolds in present mode: my live-sent
+  // messages interleaved with the other person's auto-revealed replies.
+  const [conversationLog, setConversationLog] = useState<ChatMessage[]>([]);
   const [mode, setMode] = useState<"prep" | "present">("prep");
   const [isTyping, setIsTyping] = useState(false);
-  const [autotypeText, setAutotypeText] = useState<string | null>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const autotypeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const cancelPendingTyping = () => {
     if (typingTimeoutRef.current) {
@@ -54,34 +46,6 @@ export default function Home() {
       typingTimeoutRef.current = null;
     }
     setIsTyping(false);
-    if (autotypeTimeoutRef.current) {
-      clearTimeout(autotypeTimeoutRef.current);
-      autotypeTimeoutRef.current = null;
-    }
-    setAutotypeText(null);
-  };
-
-  // Types my own message into the composer letter by letter, then sends it
-  // — so a screen recording shows a real-looking typing moment instead of
-  // the bubble just popping into existence.
-  const startAutotype = (message: ChatMessage) => {
-    const fullText = message.text;
-    setAutotypeText("");
-    let i = 0;
-    const typeNextChar = () => {
-      i++;
-      setAutotypeText(fullText.slice(0, i));
-      if (i < fullText.length) {
-        autotypeTimeoutRef.current = setTimeout(typeNextChar, nextCharDelay(fullText[i - 1]));
-      } else {
-        autotypeTimeoutRef.current = setTimeout(() => {
-          autotypeTimeoutRef.current = null;
-          setAutotypeText(null);
-          setRevealedCount((c) => Math.min(c + 1, messages.length));
-        }, 450);
-      }
-    };
-    autotypeTimeoutRef.current = setTimeout(typeNextChar, 200 + Math.random() * 150);
   };
 
   // Desktop composer: always appends and is immediately visible.
@@ -105,71 +69,39 @@ export default function Home() {
     ]);
   };
 
-  // Mobile prep: adds to the script queue without revealing it yet.
-  const handleAddToScript = (sender: Sender, text: string) => {
-    setMessages((prev) => [
-      ...prev,
-      { id: genId(), sender, text, readAt: sender === "me" ? currentTime() : undefined },
-    ]);
+  // Mobile prep: adds one of the contact's messages to the script.
+  const handleAddToScript = (text: string) => {
+    setMessages((prev) => [...prev, { id: genId(), sender: "them", text }]);
   };
 
-  // Mobile present composer: inserts right after the last revealed message and reveals it immediately.
-  const handlePresentSend = (text: string) => {
-    cancelPendingTyping();
-    const newMessage: ChatMessage = {
-      id: genId(),
-      sender: activeSender,
-      text,
-      readAt: activeSender === "me" ? currentTime() : undefined,
-    };
-    setMessages((prev) => {
-      const copy = [...prev];
-      copy.splice(revealedCount, 0, newMessage);
-      return copy;
-    });
-    setRevealedCount((c) => c + 1);
-  };
-
-  const handlePresentSendImage = (dataUrl: string) => {
-    cancelPendingTyping();
-    const newMessage: ChatMessage = {
-      id: genId(),
-      sender: activeSender,
-      text: "",
-      image: dataUrl,
-      readAt: activeSender === "me" ? currentTime() : undefined,
-    };
-    setMessages((prev) => {
-      const copy = [...prev];
-      copy.splice(revealedCount, 0, newMessage);
-      return copy;
-    });
-    setRevealedCount((c) => c + 1);
-  };
-
-  // Tapping the screen reveals the next scripted message. Messages from the
-  // other person first show a "typing…" bubble for a bit — timed roughly to
-  // their length — before the real message replaces it. My own messages get
-  // typed into the composer letter by letter and then sent automatically,
-  // so it actually looks like I'm writing it live.
-  const handleRevealNext = () => {
-    if (isTyping || autotypeText !== null) return;
+  // After I send a message live, the contact automatically replies with the
+  // next scripted message — typing bubble first, timed to its length.
+  const triggerAutoReply = () => {
+    if (isTyping) return;
     const next = messages[revealedCount];
     if (!next) return;
-    if (next.sender === "me") {
-      if (next.image || !next.text) {
-        setRevealedCount((c) => Math.min(c + 1, messages.length));
-      } else {
-        startAutotype(next);
-      }
-      return;
-    }
     setIsTyping(true);
     typingTimeoutRef.current = setTimeout(() => {
       typingTimeoutRef.current = null;
       setIsTyping(false);
-      setRevealedCount((c) => Math.min(c + 1, messages.length));
+      setConversationLog((prev) => [...prev, next]);
+      setRevealedCount((c) => c + 1);
     }, typingDelayFor(next));
+  };
+
+  // Mobile present composer: this is me, typing for real, so it just sends —
+  // then the contact's next scripted reply kicks in automatically.
+  const handlePresentSend = (text: string) => {
+    setConversationLog((prev) => [...prev, { id: genId(), sender: "me", text, readAt: currentTime() }]);
+    triggerAutoReply();
+  };
+
+  const handlePresentSendImage = (dataUrl: string) => {
+    setConversationLog((prev) => [
+      ...prev,
+      { id: genId(), sender: "me", text: "", image: dataUrl, readAt: currentTime() },
+    ]);
+    triggerAutoReply();
   };
 
   const handleTextChange = (id: string, text: string) => {
@@ -199,11 +131,13 @@ export default function Home() {
     cancelPendingTyping();
     setMessages([]);
     setRevealedCount(0);
+    setConversationLog([]);
   };
 
   const handleResetPlayback = () => {
     cancelPendingTyping();
     setRevealedCount(0);
+    setConversationLog([]);
   };
 
   const handleExitPresent = () => {
@@ -245,7 +179,7 @@ export default function Home() {
         />
       </div>
 
-      {/* Mobile: prepare the script, then record fullscreen */}
+      {/* Mobile: prepare the other person's script, then record fullscreen */}
       <div className="flex-1 w-full md:hidden">
         {mode === "prep" ? (
           <MobilePrep
@@ -255,7 +189,7 @@ export default function Home() {
             setAvatarImage={setAvatarImage}
             avatarColor={avatarColor}
             setAvatarColor={setAvatarColor}
-            messages={messages}
+            script={messages}
             revealedCount={revealedCount}
             onAddToScript={handleAddToScript}
             onDeleteMessage={handleDeleteMessage}
@@ -269,12 +203,10 @@ export default function Home() {
             contactName={contactName}
             avatarImage={avatarImage}
             avatarColor={avatarColor}
-            visibleMessages={messages.slice(0, revealedCount)}
+            conversation={conversationLog}
             isTyping={isTyping}
-            autotypeText={autotypeText}
             onSend={handlePresentSend}
             onSendImage={handlePresentSendImage}
-            onRevealNext={handleRevealNext}
             onExit={handleExitPresent}
           />
         )}
