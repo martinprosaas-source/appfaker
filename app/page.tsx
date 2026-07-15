@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ChatMessage, Sender } from "@/lib/types";
 import PhoneFrame from "@/components/PhoneFrame";
 import ControlPanel from "@/components/ControlPanel";
@@ -16,6 +16,13 @@ function genId() {
   return Math.random().toString(36).slice(2, 10);
 }
 
+// Simulates how long the other person would take to type a message: a
+// little longer for longer messages, clamped to a believable range.
+function typingDelayFor(message: ChatMessage) {
+  if (message.image) return 1400;
+  return Math.min(3200, Math.max(700, 350 + message.text.length * 35));
+}
+
 export default function Home() {
   const [contactName, setContactName] = useState("Marie");
   const [avatarImage, setAvatarImage] = useState<string | null>(null);
@@ -26,6 +33,16 @@ export default function Home() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [revealedCount, setRevealedCount] = useState(0);
   const [mode, setMode] = useState<"prep" | "present">("prep");
+  const [isTyping, setIsTyping] = useState(false);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const cancelPendingTyping = () => {
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
+    setIsTyping(false);
+  };
 
   // Desktop composer: always appends and is immediately visible.
   const handleDesktopSend = (text: string) => {
@@ -58,6 +75,7 @@ export default function Home() {
 
   // Mobile present composer: inserts right after the last revealed message and reveals it immediately.
   const handlePresentSend = (text: string) => {
+    cancelPendingTyping();
     const newMessage: ChatMessage = {
       id: genId(),
       sender: activeSender,
@@ -73,6 +91,7 @@ export default function Home() {
   };
 
   const handlePresentSendImage = (dataUrl: string) => {
+    cancelPendingTyping();
     const newMessage: ChatMessage = {
       id: genId(),
       sender: activeSender,
@@ -88,8 +107,24 @@ export default function Home() {
     setRevealedCount((c) => c + 1);
   };
 
+  // Tapping the screen reveals the next scripted message. Messages from the
+  // other person first show a "typing…" bubble for a bit — timed roughly to
+  // their length — before the real message replaces it. My own messages
+  // appear right away since I'm the one triggering the tap live.
   const handleRevealNext = () => {
-    setRevealedCount((c) => Math.min(c + 1, messages.length));
+    if (isTyping) return;
+    const next = messages[revealedCount];
+    if (!next) return;
+    if (next.sender === "me") {
+      setRevealedCount((c) => Math.min(c + 1, messages.length));
+      return;
+    }
+    setIsTyping(true);
+    typingTimeoutRef.current = setTimeout(() => {
+      typingTimeoutRef.current = null;
+      setIsTyping(false);
+      setRevealedCount((c) => Math.min(c + 1, messages.length));
+    }, typingDelayFor(next));
   };
 
   const handleTextChange = (id: string, text: string) => {
@@ -116,8 +151,19 @@ export default function Home() {
   };
 
   const handleClearAll = () => {
+    cancelPendingTyping();
     setMessages([]);
     setRevealedCount(0);
+  };
+
+  const handleResetPlayback = () => {
+    cancelPendingTyping();
+    setRevealedCount(0);
+  };
+
+  const handleExitPresent = () => {
+    cancelPendingTyping();
+    setMode("prep");
   };
 
   return (
@@ -169,7 +215,7 @@ export default function Home() {
             onAddToScript={handleAddToScript}
             onDeleteMessage={handleDeleteMessage}
             onMoveMessage={handleMoveMessage}
-            onResetPlayback={() => setRevealedCount(0)}
+            onResetPlayback={handleResetPlayback}
             onClearAll={handleClearAll}
             onStartRecording={() => setMode("present")}
           />
@@ -179,10 +225,11 @@ export default function Home() {
             avatarImage={avatarImage}
             avatarColor={avatarColor}
             visibleMessages={messages.slice(0, revealedCount)}
+            isTyping={isTyping}
             onSend={handlePresentSend}
             onSendImage={handlePresentSendImage}
             onRevealNext={handleRevealNext}
-            onExit={() => setMode("prep")}
+            onExit={handleExitPresent}
           />
         )}
       </div>

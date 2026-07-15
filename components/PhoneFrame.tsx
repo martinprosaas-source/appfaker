@@ -4,6 +4,7 @@ import StatusBar from "./StatusBar";
 import ChatHeader from "./ChatHeader";
 import MessageBubble from "./MessageBubble";
 import Composer from "./Composer";
+import TypingIndicator from "./TypingIndicator";
 
 interface PhoneFrameProps {
   contactName: string;
@@ -12,6 +13,7 @@ interface PhoneFrameProps {
   time?: string;
   battery?: number;
   messages: ChatMessage[];
+  isTyping?: boolean;
   onSend: (text: string) => void;
   onSendImage: (dataUrl: string) => void;
   onTextChange?: (id: string, text: string) => void;
@@ -22,12 +24,14 @@ interface PhoneFrameProps {
 
 function MessageList({
   messages,
+  isTyping,
   onTextChange,
 }: {
   messages: ChatMessage[];
+  isTyping?: boolean;
   onTextChange?: (id: string, text: string) => void;
 }) {
-  if (messages.length === 0) {
+  if (messages.length === 0 && !isTyping) {
     return (
       <div className="flex-1 flex items-center justify-center text-black/30 text-sm text-center px-8">
         Tape un message en bas pour démarrer la conversation
@@ -39,8 +43,10 @@ function MessageList({
     <>
       {messages.map((message, index) => {
         const next = messages[index + 1];
-        const isLastOfGroup = !next || next.sender !== message.sender;
         const isLastOverall = index === messages.length - 1;
+        // A pending "typing…" bubble for the other person takes over the
+        // last-of-group tail from the real message that precedes it.
+        const isLastOfGroup = !next ? !(isTyping && message.sender === "them") : next.sender !== message.sender;
         return (
           <div key={message.id} className={isLastOfGroup ? "mb-1.5" : ""}>
             <MessageBubble
@@ -52,6 +58,7 @@ function MessageList({
           </div>
         );
       })}
+      {isTyping && <TypingIndicator />}
     </>
   );
 }
@@ -63,6 +70,7 @@ export default function PhoneFrame({
   time,
   battery,
   messages,
+  isTyping = false,
   onSend,
   onSendImage,
   onTextChange,
@@ -74,7 +82,7 @@ export default function PhoneFrame({
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages.length]);
+  }, [messages.length, isTyping]);
 
   if (fullscreen) {
     // No fake status bar here: the phone's own real status bar (time, signal,
@@ -93,7 +101,7 @@ export default function PhoneFrame({
           className="no-scrollbar flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-[3px] bg-white"
           style={{ ["--chat-bg" as string]: "#ffffff" }}
         >
-          <MessageList messages={messages} onTextChange={onTextChange} />
+          <MessageList messages={messages} isTyping={isTyping} onTextChange={onTextChange} />
         </div>
 
         <div style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>

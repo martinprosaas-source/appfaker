@@ -6,6 +6,7 @@ interface MobilePresentProps {
   avatarImage: string | null;
   avatarColor: string;
   visibleMessages: ChatMessage[];
+  isTyping: boolean;
   onSend: (text: string) => void;
   onSendImage: (dataUrl: string) => void;
   onRevealNext: () => void;
@@ -17,6 +18,7 @@ export default function MobilePresent({
   avatarImage,
   avatarColor,
   visibleMessages,
+  isTyping,
   onSend,
   onSendImage,
   onRevealNext,
@@ -29,6 +31,7 @@ export default function MobilePresent({
       avatarImage={avatarImage}
       avatarColor={avatarColor}
       messages={visibleMessages}
+      isTyping={isTyping}
       onSend={onSend}
       onSendImage={onSendImage}
       onBackgroundTap={onRevealNext}
